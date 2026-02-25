@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: chat-db
+    restart: always
+    environment:
+      POSTGRES_USER: chatuser
+      POSTGRES_PASSWORD: chatpassword
+      POSTGRES_DB: chatdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: chat-backend
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/chatdb
+      - SPRING_DATASOURCE_USERNAME=chatuser
+      - SPRING_DATASOURCE_PASSWORD=chatpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_FLYWAY_ENABLED=false
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chat-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+
+volumes:
+  pgdata:
