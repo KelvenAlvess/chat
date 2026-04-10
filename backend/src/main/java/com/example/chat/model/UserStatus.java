@@ -1,0 +1,8 @@
+package com.example.chat.model;
+
+public enum UserStatus {
+    ONLINE,
+    OFFLINE,
+    TIPPING,
+    RECORDING_AUDIO
+}
