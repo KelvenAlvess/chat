@@ -2,6 +2,7 @@ package com.example.chat.controller;
 
 import com.example.chat.dto.UserRequestDTO;
 import com.example.chat.dto.UserResponseDTO;
+import com.example.chat.dto.UserUpdateDTO;
 import com.example.chat.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +25,23 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRequestDTO request) {
         UserResponseDTO savedUser = userService.createUser(request);
         return ResponseEntity.ok(savedUser);
+    }
+
+    @DeleteMapping("delete/{username}")
+    @Operation(summary = "Deletes a user", description = "Deletes the user with the specified username. This endpoint is used for user deletion.")
+    public ResponseEntity<Void> deleteUser(@PathVariable String username) {
+        userService.deleteUser(username);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{username}")
+    @Operation(summary = "Updates a user", description = "Updates the email, cellphone or password of an existing user.")
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @PathVariable String username,
+            @RequestBody UserUpdateDTO request) {
+
+        UserResponseDTO updatedUser = userService.updateUser(username, request);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/online")

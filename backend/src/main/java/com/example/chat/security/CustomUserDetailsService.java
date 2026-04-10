@@ -21,11 +21,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
-        // Converte a sua Entidade User para um formato que o Spring Security entende
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                new ArrayList<>() // Aqui ficariam os Roles (Admin, User), mas não precisamos agora
+                user.isActive(),
+                true,
+                true,
+                true,
+                new ArrayList<>()
         );
     }
 }
