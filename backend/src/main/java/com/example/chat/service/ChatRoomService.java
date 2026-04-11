@@ -51,7 +51,11 @@ public class ChatRoomService {
 
     @Transactional(readOnly = true)
     public List<ChatInboxDTO> getUserInbox(Long myUserId) {
-        List<ChatRoom> myRooms = chatRoomRepository.findRoomsByUserId(myUserId);
+
+        String prefix = myUserId + "_";
+        String suffix = "_" + myUserId;
+
+        List<ChatRoom> myRooms = chatRoomRepository.findByChatIdStartingWithOrChatIdEndingWith(prefix, suffix);
 
         return myRooms.stream().map(room -> {
 
