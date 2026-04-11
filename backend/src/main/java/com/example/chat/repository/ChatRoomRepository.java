@@ -13,6 +13,5 @@ import java.util.Optional;
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Optional<ChatRoom> findByChatId(String chatId);
 
-    @Query("SELECT c FROM ChatRoom c WHERE c.chatId LIKE CONCAT(:userId, '\\_%') OR c.chatId LIKE CONCAT('%\\_', :userId)")
-    List<ChatRoom> findRoomsByUserId(@Param("userId") Long userId);
+    List<ChatRoom> findByChatIdStartingWithOrChatIdEndingWith(String prefix, String suffix);
 }
