@@ -8,6 +8,7 @@ import { RootStackParamList } from '../types/navigation';
 
 import LoginScreen from '../screens/LoginScreen';
 import InboxScreen from '../screens/InboxScreen';
+import ChatScreen from '../screens/ChatScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -46,7 +47,7 @@ export default function AppNavigator() {
                         />
                         <Stack.Screen
                             name="Chat"
-                            component={PlaceholderScreen}
+                            component={ChatScreen}
                             options={({ route }) => ({ title: route.params.otherUsername })}
                         />
                     </>

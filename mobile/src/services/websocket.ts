@@ -1,12 +1,12 @@
 import {Client, IMessage} from "@stomp/stompjs";
 import * as SecureStore from "expo-secure-store";
 
-const WS_URL = 'ws://10.0.2.2:8082'
+const WS_URL = 'ws://10.0.2.2:8082/ws'
 
 class WebSocketService {
     private client: Client | null = null;
 
-    async conect(myUserId : number, onMessageReceived: (msg: any) => void) {
+    async connect(myUserId : number, onMessageReceived: (msg: any) => void) {
         const token = await SecureStore.getItemAsync('jwt_token');
 
         if (!token) {
@@ -16,6 +16,7 @@ class WebSocketService {
 
         this.client = new Client({
             brokerURL: WS_URL,
+            webSocketFactory: () => new WebSocket(WS_URL),
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
@@ -58,4 +59,4 @@ class WebSocketService {
     }
 }
 
-export const websocketService = new WebSocketService();
+export const webSocketService = new WebSocketService();

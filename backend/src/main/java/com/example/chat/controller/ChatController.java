@@ -44,6 +44,33 @@ public class ChatController {
         );
     }
 
+    @PostMapping("/messages")
+    @Operation(summary = "Enviar Mensagem (REST)", description = "Salva uma mensagem no banco e notifica o destinatário em tempo real via WebSocket.")
+    public ResponseEntity<ChatMessageResponseDTO> sendMessageRest(
+            Principal principal,
+            @RequestBody ChatMessageRequestDTO request) {
+
+        Long myId = getAuthenticatedUserId(principal);
+
+        ChatMessageRequestDTO secureRequest = new ChatMessageRequestDTO(
+                request.chatRoomId(),
+                myId,
+                request.recipientId(),
+                request.content(),
+                request.messageType()
+        );
+
+        ChatMessageResponseDTO savedMessage = chatMessageService.saveMessage(secureRequest);
+
+        messagingTemplate.convertAndSendToUser(
+                String.valueOf(secureRequest.recipientId()),
+                "/queue/messages",
+                savedMessage
+        );
+
+        return ResponseEntity.ok(savedMessage);
+    }
+
     @GetMapping("/inbox")
     @Operation(summary = "Lista de Conversas (Inbox)", description = "Busca todas as conversas do usuário logado com a última mensagem e contador de não lidas.")
     public ResponseEntity<List<ChatInboxDTO>> getMyInbox(Principal principal) {
