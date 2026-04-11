@@ -1,3 +1,4 @@
+import 'text-encoding';
 import React from 'react';
 import { AuthContextProvider } from './src/contexts/AuthContext';
 import AppNavigator from './src/navigation/AppNavigator';
