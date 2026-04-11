@@ -40,6 +40,10 @@ public class ChatMessage {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
+    @Column(name = "is_read", nullable = false)
+    @Builder.Default
+    private boolean isRead = false;
+
     @PrePersist
     protected void onCreate() {
         this.timestamp = LocalDateTime.now();

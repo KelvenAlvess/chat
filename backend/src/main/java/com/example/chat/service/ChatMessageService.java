@@ -51,4 +51,10 @@ public class ChatMessageService {
 
         return messages.map(messageMapper::toResponseDTO);
     }
+
+    @Transactional
+    public void markMessagesAsRead(Long myUserId, Long otherUserId) {
+        String chatId = chatRoomService.createChatId(myUserId, otherUserId);
+        messageRepository.markMessagesAsRead(chatId, myUserId);
+    }
 }
