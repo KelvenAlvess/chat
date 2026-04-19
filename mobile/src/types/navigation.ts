@@ -1,7 +1,7 @@
 export type RootStackParamList = {
     Login: undefined;
-
-    // Telas Privadas
+    
     Inbox: undefined;
+    Contacts: undefined; // <-- Nova tela adicionada aqui
     Chat: { otherUserId: number; otherUsername: string };
 };

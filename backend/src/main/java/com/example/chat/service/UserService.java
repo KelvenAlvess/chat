@@ -1,5 +1,6 @@
 package com.example.chat.service;
 
+import com.example.chat.dto.UserContactDTO;
 import com.example.chat.dto.UserRequestDTO;
 import com.example.chat.dto.UserResponseDTO;
 import com.example.chat.dto.UserUpdateDTO;
@@ -16,6 +17,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.chat.model.UserStatus.OFFLINE;
 import static com.example.chat.model.UserStatus.ONLINE;
@@ -118,5 +122,13 @@ public class UserService {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> usersPage = userRepository.findAll(pageable);
         return usersPage.map(userMapper::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserContactDTO> getAvailableContacts(Long currentUserId) {
+        return userRepository.findByUserIdNot(currentUserId)
+                .stream()
+                .map(user -> new UserContactDTO(user.getUserId(), user.getUsername()))
+                .collect(Collectors.toList());
     }
 }

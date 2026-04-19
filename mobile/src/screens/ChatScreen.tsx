@@ -16,14 +16,19 @@ import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
 import { webSocketService } from '../services/websocket';
 
-
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
 
 interface ChatMessage {
     messageId: number;
     content: string;
-    senderId: number;
-    recipientId: number;
+    sender: {
+        userId: number;
+        username: string;
+    };
+    recipient: {
+        userId: number;
+        username: string;
+    };
     timestamp: string;
     isRead?: boolean;
 }
@@ -42,15 +47,11 @@ export default function ChatScreen() {
     useEffect(() => {
         if (!user) return;
 
-
         api.put(`/api/chat/messages/${otherUserId}/read`).catch(console.error);
-
 
         const fetchHistory = async () => {
             try {
-
                 const response = await api.get(`/api/chat/messages/${otherUserId}?page=0&size=50`);
-
                 setMessages(response.data.content);
             } catch (error) {
                 console.error("Erro ao buscar histórico:", error);
@@ -61,12 +62,10 @@ export default function ChatScreen() {
 
         fetchHistory();
 
-
         webSocketService.connect(user.userId, (novaMensagem: ChatMessage) => {
 
-            if (novaMensagem.senderId === otherUserId) {
+            if (novaMensagem.sender.userId === otherUserId) {
                 setMessages((mensagensAntigas) => [novaMensagem, ...mensagensAntigas]);
-
                 api.put(`/api/chat/messages/${otherUserId}/read`).catch(console.error);
             }
         });
@@ -79,19 +78,23 @@ export default function ChatScreen() {
     const handleSendMessage = () => {
         if (!inputText.trim() || !user) return;
 
-        const novaMensagem = {
+        const novaMensagemRequest = {
+            chatRoomId: null,
             senderId: user.userId,
             recipientId: otherUserId,
             content: inputText.trim(),
-            type: "CHAT"
+            messageType: "CHAT"
         };
 
-        webSocketService.sendMessage(novaMensagem);
+        webSocketService.sendMessage(novaMensagemRequest);
 
         const mensagemLocal: ChatMessage = {
             messageId: Date.now(),
-            ...novaMensagem,
-            timestamp: new Date().toISOString()
+            content: inputText.trim(),
+            sender: { userId: user.userId, username: user.username },
+            recipient: { userId: otherUserId, username: otherUsername },
+            timestamp: new Date().toISOString(),
+            isRead: false
         };
 
         setMessages((mensagensAntigas) => [mensagemLocal, ...mensagensAntigas]);
@@ -99,9 +102,11 @@ export default function ChatScreen() {
     };
 
     const renderMessage = ({ item }: { item: ChatMessage }) => {
-        const isMyMessage = item.senderId === user?.userId;
 
-        const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isMyMessage = String(item.sender.userId) === String(user?.userId);
+
+        const timestampUTC = item.timestamp.endsWith('Z') ? item.timestamp : `${item.timestamp}Z`;
+        const time = new Date(timestampUTC).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         return (
             <View style={[styles.messageBubble, isMyMessage ? styles.myMessage : styles.theirMessage]}>
@@ -123,7 +128,6 @@ export default function ChatScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-
             <FlatList
                 ref={flatListRef}
                 data={messages}

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, ActivityIndicator, TouchableOpacity, Text } from 'react-native'; // <-- Adicione TouchableOpacity e Text
+import { View, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -9,10 +9,9 @@ import { RootStackParamList } from '../types/navigation';
 import LoginScreen from '../screens/LoginScreen';
 import InboxScreen from '../screens/InboxScreen';
 import ChatScreen from '../screens/ChatScreen';
+import ContactsScreen from '../screens/ContactsScreen'; // <-- Importação Nova
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const PlaceholderScreen = () => <View style={{ flex: 1, backgroundColor: 'white' }} />;
 
 export default function AppNavigator() {
     const { user, isLoading, logout } = useContext(AuthContext);
@@ -37,7 +36,6 @@ export default function AppNavigator() {
                             component={InboxScreen}
                             options={{
                                 title: 'Minhas Conversas',
-
                                 headerRight: () => (
                                     <TouchableOpacity onPress={logout} style={{ padding: 10 }}>
                                         <Text style={{ color: '#ff3b30', fontWeight: 'bold' }}>Sair</Text>
@@ -45,6 +43,13 @@ export default function AppNavigator() {
                                 ),
                             }}
                         />
+
+                        <Stack.Screen
+                            name="Contacts"
+                            component={ContactsScreen}
+                            options={{ title: 'Novo Chat' }}
+                        />
+
                         <Stack.Screen
                             name="Chat"
                             component={ChatScreen}

@@ -3,6 +3,7 @@ package com.example.chat.controller;
 import com.example.chat.dto.ChatInboxDTO;
 import com.example.chat.dto.ChatMessageRequestDTO;
 import com.example.chat.dto.ChatMessageResponseDTO;
+import com.example.chat.messaging.ChatMessageProducer;
 import com.example.chat.service.ChatMessageService;
 import com.example.chat.service.ChatRoomService;
 import com.example.chat.service.UserService;
@@ -13,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -28,7 +28,7 @@ public class ChatController {
     private final ChatMessageService chatMessageService;
     private final ChatRoomService chatRoomService;
     private final UserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageProducer kafkaProducer;
 
     private Long getAuthenticatedUserId(Principal principal) {
         return userService.findByUsername(principal.getName()).userId();
@@ -36,17 +36,13 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void processMessage(@Payload ChatMessageRequestDTO request) {
-        ChatMessageResponseDTO savedMessage = chatMessageService.saveMessage(request);
-        messagingTemplate.convertAndSendToUser(
-                String.valueOf(request.recipientId()),
-                "/queue/messages",
-                savedMessage
-        );
+
+        kafkaProducer.sendChatMessageEvent(request);
     }
 
     @PostMapping("/messages")
-    @Operation(summary = "Enviar Mensagem (REST)", description = "Salva uma mensagem no banco e notifica o destinatário em tempo real via WebSocket.")
-    public ResponseEntity<ChatMessageResponseDTO> sendMessageRest(
+    @Operation(summary = "Enviar Mensagem (REST)", description = "Lança o evento de mensagem no Kafka para processamento assíncrono.")
+    public ResponseEntity<Void> sendMessageRest(
             Principal principal,
             @RequestBody ChatMessageRequestDTO request) {
 
@@ -60,19 +56,13 @@ public class ChatController {
                 request.messageType()
         );
 
-        ChatMessageResponseDTO savedMessage = chatMessageService.saveMessage(secureRequest);
+        kafkaProducer.sendChatMessageEvent(secureRequest);
 
-        messagingTemplate.convertAndSendToUser(
-                String.valueOf(secureRequest.recipientId()),
-                "/queue/messages",
-                savedMessage
-        );
-
-        return ResponseEntity.ok(savedMessage);
+        return ResponseEntity.accepted().build();
     }
 
     @GetMapping("/inbox")
-    @Operation(summary = "Lista de Conversas (Inbox)", description = "Busca todas as conversas do usuário logado com a última mensagem e contador de não lidas.")
+    @Operation(summary = "Lista de Conversas (Inbox)", description = "Busca todas as conversas do usuário logado.")
     public ResponseEntity<List<ChatInboxDTO>> getMyInbox(Principal principal) {
         Long myId = getAuthenticatedUserId(principal);
         List<ChatInboxDTO> inbox = chatRoomService.getUserInbox(myId);
@@ -80,7 +70,7 @@ public class ChatController {
     }
 
     @GetMapping("/messages/{otherUserId}")
-    @Operation(summary = "Histórico do Chat", description = "Busca as mensagens antigas de forma paginada entre o usuário logado e outro usuário especificado.")
+    @Operation(summary = "Histórico do Chat", description = "Busca as mensagens antigas de forma paginada.")
     public ResponseEntity<Page<ChatMessageResponseDTO>> getChatHistory(
             Principal principal,
             @PathVariable Long otherUserId,
@@ -93,7 +83,7 @@ public class ChatController {
     }
 
     @PutMapping("/messages/{otherUserId}/read")
-    @Operation(summary = "Marcar como Lido", description = "Marca todas as mensagens enviadas por um usuário específico para o usuário logado como lidas.")
+    @Operation(summary = "Marcar como Lido", description = "Marca todas as mensagens enviadas por um usuário específico como lidas.")
     public ResponseEntity<Void> markAsRead(Principal principal, @PathVariable Long otherUserId) {
         Long myId = getAuthenticatedUserId(principal);
         chatMessageService.markMessagesAsRead(myId, otherUserId);

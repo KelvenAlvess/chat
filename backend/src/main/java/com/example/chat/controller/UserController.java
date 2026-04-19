@@ -1,8 +1,10 @@
 package com.example.chat.controller;
 
+import com.example.chat.dto.UserContactDTO;
 import com.example.chat.dto.UserRequestDTO;
 import com.example.chat.dto.UserResponseDTO;
 import com.example.chat.dto.UserUpdateDTO;
+
 import com.example.chat.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
 
 
 @RestController
@@ -65,5 +70,16 @@ public class UserController {
     public ResponseEntity<Void> disconnectUser(@PathVariable Long userId) {
         userService.disconnectUser(userId);
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("/contacts")
+    @Operation(summary = "Listar Contactos", description = "Retorna todos os utilizadores registados, exceto o utilizador logado.")
+    public ResponseEntity<List<UserContactDTO>> getContacts(Principal principal) {
+
+        Long myId = userService.findByUsername(principal.getName()).userId();
+        List<UserContactDTO> contacts = userService.getAvailableContacts(myId);
+
+        return ResponseEntity.ok(contacts);
     }
 }

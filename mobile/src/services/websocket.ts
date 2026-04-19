@@ -41,16 +41,16 @@ class WebSocketService {
         this.client.activate();
     }
 
-    sendMessage(chatMessage : {senderId: number, recipientId: number, content: string, type: string}) {
+    sendMessage(chatMessage : { chatRoomId: number | null, senderId: number, recipientId: number, content: string, messageType: string }) {
         if (this.client && this.client.connected) {
             this.client.publish({
                 destination: '/app/chat',
                 body: JSON.stringify(chatMessage)
             });
-        }else {
+        } else {
             console.error('Tentativa de envio com erro. Websocket desconectado.');
-            }
         }
+    }
 
         disconnect() {
         if (this.client) {

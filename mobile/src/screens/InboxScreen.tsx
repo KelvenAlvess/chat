@@ -26,7 +26,7 @@ interface ChatInbox {
 type InboxScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Inbox'>;
 
 export default function InboxScreen() {
-    const { user, logout } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const navigation = useNavigation<InboxScreenNavigationProp>();
 
     const [inbox, setInbox] = useState<ChatInbox[]>([]);
@@ -37,12 +37,8 @@ export default function InboxScreen() {
         try {
             const response = await api.get<ChatInbox[]>('/api/chat/inbox');
             setInbox(response.data);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Erro ao buscar inbox:", error);
-
-            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
-                logout();
-            }
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -62,7 +58,8 @@ export default function InboxScreen() {
 
     const renderItem = ({ item }: { item: ChatInbox }) => {
 
-        const date = new Date(item.lastMessageTimestamp);
+        const timestampUTC = item.lastMessageTimestamp.endsWith('Z') ? item.lastMessageTimestamp : `${item.lastMessageTimestamp}Z`;
+        const date = new Date(timestampUTC);
         const formattedTime = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
         return (
@@ -127,6 +124,13 @@ export default function InboxScreen() {
                     }
                 />
             )}
+
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => navigation.navigate('Contacts')}
+            >
+                <Text style={styles.fabIcon}>+</Text>
+            </TouchableOpacity>
         </View>
     );
 }
@@ -148,5 +152,28 @@ const styles = StyleSheet.create({
     lastMessage: { fontSize: 14, color: '#666', flex: 1, paddingRight: 10 },
     unreadMessageText: { fontWeight: 'bold', color: '#000' },
     badge: { backgroundColor: '#25D366', borderRadius: 12, minWidth: 24, height: 24, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 6 },
-    badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' }
+    badgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+
+    // Estilos do Botão Flutuante
+    fab: {
+        position: 'absolute',
+        width: 60,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        right: 20,
+        bottom: 20,
+        backgroundColor: '#007BFF',
+        borderRadius: 30,
+        elevation: 5, // Sombra no Android
+        shadowColor: '#000', // Sombra no iOS
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    fabIcon: {
+        fontSize: 30,
+        color: 'white',
+        lineHeight: 32,
+    }
 });
