@@ -1,7 +1,7 @@
 import {Client, IMessage} from "@stomp/stompjs";
 import * as SecureStore from "expo-secure-store";
 
-const WS_URL = 'ws://10.0.2.2:8082/ws'
+const WS_URL = 'ws://192.168.0.7:8082/ws'
 
 class WebSocketService {
     private client: Client | null = null;

@@ -4,14 +4,23 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
     ActivityIndicator,
-    Alert
+    Alert,
+    SafeAreaView,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
+import { authColors, authStyles } from '../theme/authStyles';
 
 export default function LoginScreen() {
     const { login } = useContext(AuthContext);
+
+    type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+    const navigation = useNavigation<LoginScreenNavigationProp>();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -19,104 +28,77 @@ export default function LoginScreen() {
 
     const handleLogin = async () => {
         if (!username || !password) {
-            Alert.alert('Atenção', 'Preencha usuário e senha!');
+            Alert.alert('Atencao', 'Preencha usuario e senha!');
             return;
         }
 
         setLoading(true);
         try {
             await login(username, password);
-            // Se der certo, o AuthContext vai atualizar o estado global do 'user'.
-            // O navegador (React Navigation) que configuraremos depois vai perceber
-            // essa mudança e redirecionar automaticamente para a tela do Chat!
         } catch (error: any) {
-            Alert.alert('Erro de Autenticação', error.message);
+            Alert.alert('Erro de Autenticacao', error.message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Bem-vindo ao Chat</Text>
-
-            <TextInput
-                style={styles.input}
-                placeholder="Digite seu username"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-            />
-
-            <TextInput
-                style={styles.input}
-                placeholder="Digite sua senha"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
-
-            <TouchableOpacity
-                style={styles.button}
-                onPress={handleLogin}
-                disabled={loading}
+        <SafeAreaView style={authStyles.safeArea}>
+            <KeyboardAvoidingView
+                style={authStyles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                {loading ? (
-                    <ActivityIndicator color="#FFF" />
-                ) : (
-                    <Text style={styles.buttonText}>Entrar</Text>
-                )}
-            </TouchableOpacity>
+                <View style={authStyles.header}>
+                    <Text style={authStyles.title}>Bem-vindo de volta</Text>
+                    <Text style={authStyles.subtitle}>Faca login para continuar suas conversas.</Text>
+                </View>
 
-            <TouchableOpacity style={styles.registerButton}>
-                <Text style={styles.registerText}>Não tem conta? Registre-se aqui</Text>
-            </TouchableOpacity>
-        </View>
+                <View style={authStyles.form}>
+                    <TextInput
+                        style={authStyles.input}
+                        placeholder="Digite seu username"
+                        placeholderTextColor={authColors.placeholder}
+                        value={username}
+                        onChangeText={setUsername}
+                        autoCapitalize="none"
+                    />
+
+                    <TextInput
+                        style={authStyles.input}
+                        placeholder="Digite sua senha"
+                        placeholderTextColor={authColors.placeholder}
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('ForgotPassword')}
+                        style={{ alignSelf: 'flex-end', marginTop: 4 }}
+                    >
+                        <Text style={{ color: authColors.subtitle, fontSize: 13 }}>Esqueci minha senha</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={authStyles.primaryButton}
+                        onPress={handleLogin}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color={authColors.primaryButtonText} />
+                        ) : (
+                            <Text style={authStyles.primaryButtonText}>Entrar</Text>
+                        )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={authStyles.secondaryButton}
+                        onPress={() => navigation.navigate('Register')}
+                    >
+                        <Text style={authStyles.secondaryButtonText}>Nao tem conta? Criar nova conta</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 20,
-        backgroundColor: '#F5F5F5',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 40,
-        color: '#333',
-    },
-    input: {
-        backgroundColor: '#FFF',
-        paddingHorizontal: 15,
-        paddingVertical: 12,
-        borderRadius: 8,
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#DDD',
-        fontSize: 16,
-    },
-    button: {
-        backgroundColor: '#007BFF',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    buttonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    registerButton: {
-        marginTop: 20,
-        alignItems: 'center',
-    },
-    registerText: {
-        color: '#007BFF',
-        fontSize: 14,
-    }
-});

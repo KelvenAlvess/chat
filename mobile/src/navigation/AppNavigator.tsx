@@ -6,10 +6,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../contexts/AuthContext';
 import { RootStackParamList } from '../types/navigation';
 
+import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import VerifyCodeScreen from '../screens/VerifyCodeScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import InboxScreen from '../screens/InboxScreen';
 import ChatScreen from '../screens/ChatScreen';
-import ContactsScreen from '../screens/ContactsScreen'; // <-- Importação Nova
+import ContactsScreen from '../screens/ContactsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,7 +33,14 @@ export default function AppNavigator() {
         <NavigationContainer>
             <Stack.Navigator>
                 {user == null ? (
-                    <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                    <>
+                        <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ headerShown: false }} />
+                    </>
                 ) : (
                     <>
                         <Stack.Screen

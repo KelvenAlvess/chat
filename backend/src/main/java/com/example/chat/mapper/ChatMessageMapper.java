@@ -1,7 +1,7 @@
 package com.example.chat.mapper;
 
-import com.example.chat.dto.ChatMessageRequestDTO;
-import com.example.chat.dto.ChatMessageResponseDTO;
+import com.example.chat.dto.chat.ChatMessageRequestDTO;
+import com.example.chat.dto.chat.ChatMessageResponseDTO;
 import com.example.chat.model.ChatMessage;
 import com.example.chat.model.ChatRoom;
 import com.example.chat.model.User;

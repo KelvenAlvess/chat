@@ -1,9 +1,9 @@
 package com.example.chat.controller;
 
-import com.example.chat.dto.UserContactDTO;
-import com.example.chat.dto.UserRequestDTO;
-import com.example.chat.dto.UserResponseDTO;
-import com.example.chat.dto.UserUpdateDTO;
+import com.example.chat.dto.user.UserContactDTO;
+import com.example.chat.dto.user.UserRequestDTO;
+import com.example.chat.dto.user.UserResponseDTO;
+import com.example.chat.dto.user.UserUpdateDTO;
 
 import com.example.chat.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

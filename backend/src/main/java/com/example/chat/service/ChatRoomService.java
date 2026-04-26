@@ -1,6 +1,6 @@
 package com.example.chat.service;
 
-import com.example.chat.dto.ChatInboxDTO;
+import com.example.chat.dto.chat.ChatInboxDTO;
 import com.example.chat.model.ChatMessage;
 import com.example.chat.model.ChatRoom;
 import com.example.chat.model.User;

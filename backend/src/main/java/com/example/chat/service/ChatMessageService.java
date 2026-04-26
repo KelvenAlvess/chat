@@ -1,7 +1,7 @@
 package com.example.chat.service;
 
-import com.example.chat.dto.ChatMessageRequestDTO;
-import com.example.chat.dto.ChatMessageResponseDTO;
+import com.example.chat.dto.chat.ChatMessageRequestDTO;
+import com.example.chat.dto.chat.ChatMessageResponseDTO;
 import com.example.chat.exception.UserNotFoundException;
 import com.example.chat.mapper.ChatMessageMapper;
 import com.example.chat.model.ChatMessage;

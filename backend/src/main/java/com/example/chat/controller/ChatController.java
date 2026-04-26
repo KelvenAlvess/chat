@@ -1,8 +1,8 @@
 package com.example.chat.controller;
 
-import com.example.chat.dto.ChatInboxDTO;
-import com.example.chat.dto.ChatMessageRequestDTO;
-import com.example.chat.dto.ChatMessageResponseDTO;
+import com.example.chat.dto.chat.ChatInboxDTO;
+import com.example.chat.dto.chat.ChatMessageRequestDTO;
+import com.example.chat.dto.chat.ChatMessageResponseDTO;
 import com.example.chat.messaging.ChatMessageProducer;
 import com.example.chat.service.ChatMessageService;
 import com.example.chat.service.ChatRoomService;

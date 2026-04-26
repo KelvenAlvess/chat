@@ -1,5 +1,6 @@
-package com.example.chat.dto;
+package com.example.chat.dto.chat;
 
+import com.example.chat.dto.user.UserResponseDTO;
 import com.example.chat.model.MessageType;
 
 import java.time.LocalDateTime;

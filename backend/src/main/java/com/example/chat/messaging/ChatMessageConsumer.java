@@ -1,7 +1,7 @@
 package com.example.chat.messaging;
 
-import com.example.chat.dto.ChatMessageRequestDTO;
-import com.example.chat.dto.ChatMessageResponseDTO;
+import com.example.chat.dto.chat.ChatMessageRequestDTO;
+import com.example.chat.dto.chat.ChatMessageResponseDTO;
 import com.example.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

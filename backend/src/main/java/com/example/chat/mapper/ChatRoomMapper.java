@@ -1,7 +1,7 @@
 package com.example.chat.mapper;
 
-import com.example.chat.dto.ChatRoomRequestDTO;
-import com.example.chat.dto.ChatRoomResponseDTO;
+import com.example.chat.dto.chat.ChatRoomRequestDTO;
+import com.example.chat.dto.chat.ChatRoomResponseDTO;
 import com.example.chat.model.ChatRoom;
 import org.springframework.stereotype.Component;
 

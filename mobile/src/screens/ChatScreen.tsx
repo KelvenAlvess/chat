@@ -6,11 +6,13 @@ import {
     TouchableOpacity,
     FlatList,
     StyleSheet,
+    ActivityIndicator,
     KeyboardAvoidingView,
+    Keyboard,
     Platform,
-    ActivityIndicator
 } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
+
 import { RootStackParamList } from '../types/navigation';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -36,12 +38,14 @@ interface ChatMessage {
 export default function ChatScreen() {
     const { user } = useContext(AuthContext);
     const route = useRoute<ChatScreenRouteProp>();
-
     const { otherUserId, otherUsername } = route.params;
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(true);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const isIOS = Platform.OS === 'ios';
+
     const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
@@ -54,7 +58,7 @@ export default function ChatScreen() {
                 const response = await api.get(`/api/chat/messages/${otherUserId}?page=0&size=50`);
                 setMessages(response.data.content);
             } catch (error) {
-                console.error("Erro ao buscar histórico:", error);
+                console.error('Erro ao buscar histórico:', error);
             } finally {
                 setLoading(false);
             }
@@ -63,7 +67,6 @@ export default function ChatScreen() {
         fetchHistory();
 
         webSocketService.connect(user.userId, (novaMensagem: ChatMessage) => {
-
             if (novaMensagem.sender.userId === otherUserId) {
                 setMessages((mensagensAntigas) => [novaMensagem, ...mensagensAntigas]);
                 api.put(`/api/chat/messages/${otherUserId}/read`).catch(console.error);
@@ -75,6 +78,23 @@ export default function ChatScreen() {
         };
     }, [user, otherUserId]);
 
+    useEffect(() => {
+        if (isIOS) return;
+
+        const showSub = Keyboard.addListener('keyboardDidShow', (event) => {
+            setKeyboardHeight(event.endCoordinates.height);
+        });
+
+        const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, [isIOS]);
+
     const handleSendMessage = () => {
         if (!inputText.trim() || !user) return;
 
@@ -83,7 +103,7 @@ export default function ChatScreen() {
             senderId: user.userId,
             recipientId: otherUserId,
             content: inputText.trim(),
-            messageType: "CHAT"
+            messageType: 'CHAT',
         };
 
         webSocketService.sendMessage(novaMensagemRequest);
@@ -94,7 +114,7 @@ export default function ChatScreen() {
             sender: { userId: user.userId, username: user.username },
             recipient: { userId: otherUserId, username: otherUsername },
             timestamp: new Date().toISOString(),
-            isRead: false
+            isRead: false,
         };
 
         setMessages((mensagensAntigas) => [mensagemLocal, ...mensagensAntigas]);
@@ -102,9 +122,7 @@ export default function ChatScreen() {
     };
 
     const renderMessage = ({ item }: { item: ChatMessage }) => {
-
         const isMyMessage = String(item.sender.userId) === String(user?.userId);
-
         const timestampUTC = item.timestamp.endsWith('Z') ? item.timestamp : `${item.timestamp}Z`;
         const time = new Date(timestampUTC).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -122,40 +140,56 @@ export default function ChatScreen() {
         return <ActivityIndicator size="large" color="#007BFF" style={{ flex: 1, justifyContent: 'center' }} />;
     }
 
-    return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
+    const content = (
+        <>
             <FlatList
+                style={styles.list}
                 ref={flatListRef}
                 data={messages}
                 keyExtractor={(item) => item.messageId.toString()}
                 renderItem={renderMessage}
-                inverted={true}
+                inverted
                 contentContainerStyle={styles.listContent}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
             />
 
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Digite uma mensagem..."
-                    value={inputText}
-                    onChangeText={setInputText}
-                    multiline
-                />
-                <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-                    <Text style={styles.sendButtonText}>Enviar</Text>
-                </TouchableOpacity>
+            <View style={[styles.inputWrapper, !isIOS && { paddingBottom: keyboardHeight }]}>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Digite uma mensagem..."
+                        value={inputText}
+                        onChangeText={setInputText}
+                        multiline={false}
+                        returnKeyType="send"
+                        onSubmitEditing={handleSendMessage}
+                        blurOnSubmit={false}
+                    />
+                    <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+                        <Text style={styles.sendButtonText}>Enviar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </KeyboardAvoidingView>
+        </>
     );
+
+    if (isIOS) {
+        return (
+            <KeyboardAvoidingView style={styles.container} behavior="padding">
+                {content}
+            </KeyboardAvoidingView>
+        );
+    }
+
+    return <View style={styles.container}>{content}</View>;
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#E5DDD5' },
-    listContent: { padding: 15 },
+    list: { flex: 1 },
+    listContent: { padding: 15, paddingBottom: 8 },
+
     messageBubble: {
         maxWidth: '80%',
         padding: 12,
@@ -176,13 +210,17 @@ const styles = StyleSheet.create({
     myMessageText: { color: '#000' },
     theirMessageText: { color: '#000' },
     timeText: { fontSize: 10, color: '#888', alignSelf: 'flex-end', marginTop: 4 },
+
+    inputWrapper: {
+        backgroundColor: '#FFF',
+    },
     inputContainer: {
         flexDirection: 'row',
         padding: 10,
         backgroundColor: '#FFF',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderColor: '#E0E0E0'
+        borderColor: '#E0E0E0',
     },
     input: {
         flex: 1,
@@ -192,7 +230,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 10,
         maxHeight: 100,
-        fontSize: 16
+        fontSize: 16,
     },
     sendButton: {
         marginLeft: 10,
@@ -202,5 +240,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         justifyContent: 'center',
     },
-    sendButtonText: { color: '#FFF', fontWeight: 'bold' }
+    sendButtonText: { color: '#FFF', fontWeight: 'bold' },
 });

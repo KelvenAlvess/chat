@@ -1,4 +1,4 @@
-package com.example.chat.dto;
+package com.example.chat.dto.user;
 
 public record UserContactDTO(
         Long userId,

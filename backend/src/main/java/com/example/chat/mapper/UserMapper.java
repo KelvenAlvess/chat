@@ -1,7 +1,7 @@
 package com.example.chat.mapper;
 
-import com.example.chat.dto.UserRequestDTO;
-import com.example.chat.dto.UserResponseDTO;
+import com.example.chat.dto.user.UserRequestDTO;
+import com.example.chat.dto.user.UserResponseDTO;
 import com.example.chat.model.User;
 import com.example.chat.model.UserStatus;
 import org.springframework.stereotype.Component;
